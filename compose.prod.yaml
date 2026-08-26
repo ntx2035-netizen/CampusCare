@@ -1,0 +1,39 @@
+services:
+  api:
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-campuscare}:${POSTGRES_PASSWORD:?Hãy đặt POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-campuscare}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Hãy đặt MINIO_SECRET_KEY}
+      JWT_SECRET: ${JWT_SECRET:?Hãy đặt JWT_SECRET tối thiểu 32 ký tự ngẫu nhiên}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Hãy đặt CORS_ORIGINS cho tên miền triển khai}
+      SCHOOL_EMAIL_DOMAINS: ${SCHOOL_EMAIL_DOMAINS:?Hãy đặt SCHOOL_EMAIL_DOMAINS}
+      DISPATCHER_EMAIL_DOMAINS: ${DISPATCHER_EMAIL_DOMAINS:-gmail.com}
+      SMTP_HOST: ${SMTP_HOST:?Hãy đặt máy chủ SMTP}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:?Hãy đặt tài khoản SMTP}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Hãy đặt mật khẩu ứng dụng SMTP}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Hãy đặt địa chỉ gửi OTP}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      SEED_DEMO: "false"
+    restart: always
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Hãy đặt POSTGRES_PASSWORD}
+    restart: always
+  redis:
+    restart: always
+  minio:
+    environment:
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?Hãy đặt MINIO_SECRET_KEY}
+    restart: always
+  mailpit:
+    ports: []
+  admin-web:
+    restart: always
+  mobile-web:
+    restart: always
+    ports: []
+  nginx:
+    restart: always
+    ports:
+      - "${HTTP_PORT:-80}:80"

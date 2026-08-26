@@ -1,0 +1,153 @@
+name: campuscare
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-campuscare}
+      POSTGRES_USER: ${POSTGRES_USER:-campuscare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CampusCare_DB_2026!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks: [backend]
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [backend]
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-campuscare}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-CampusCare_MinIO_2026!}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 4s
+      retries: 15
+    networks: [backend]
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [backend, frontend]
+
+  api:
+    build:
+      context: ./services/api
+    restart: unless-stopped
+    command: ["sh", "-c", "alembic upgrade head && if [ \"$${SEED_DEMO}\" = \"true\" ]; then python -m app.seed; fi && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-campuscare}:${POSTGRES_PASSWORD:-CampusCare_DB_2026!}@postgres:5432/${POSTGRES_DB:-campuscare}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-campuscare}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-CampusCare_MinIO_2026!}
+      MINIO_BUCKET: ${MINIO_BUCKET:-campuscare-images}
+      MINIO_SECURE: "false"
+      JWT_SECRET: ${JWT_SECRET:-change-this-development-secret-at-least-32-characters}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:8081,http://localhost:5173}
+      SCHOOL_EMAIL_DOMAINS: ${SCHOOL_EMAIL_DOMAINS:-ictu.edu.vn}
+      DISPATCHER_EMAIL_DOMAINS: ${DISPATCHER_EMAIL_DOMAINS:-gmail.com}
+      OTP_EXPIRE_MINUTES: ${OTP_EXPIRE_MINUTES:-10}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-CampusCare <no-reply@campuscare.local>}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+      CAMPUS_CENTER_LATITUDE: ${CAMPUS_CENTER_LATITUDE:-21.5862035}
+      CAMPUS_CENTER_LONGITUDE: ${CAMPUS_CENTER_LONGITUDE:-105.8063499}
+      CAMPUS_RADIUS_METERS: ${CAMPUS_RADIUS_METERS:-2500}
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-CampusCare@Admin2026!}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      QR_OUTPUT_DIR: /app/generated_qr
+    volumes:
+      - qr_data:/app/generated_qr
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+      mailpit: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 10
+    networks: [backend, frontend]
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [frontend]
+
+  mobile-web:
+    build:
+      context: .
+      dockerfile: apps/mobile/Dockerfile
+      args:
+        EXPO_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [frontend]
+
+  nginx:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api: { condition: service_healthy }
+      admin-web: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+    networks: [frontend]
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  qr_data:
+
+networks:
+  backend:
+    internal: true
+  frontend:
