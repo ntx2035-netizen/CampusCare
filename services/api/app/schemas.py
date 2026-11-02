@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
@@ -20,11 +20,18 @@ class UserBrief(BaseModel):
 
 class UserOut(UserBrief):
     phone: str | None = None
+    date_of_birth: date | None = None
+    temporary_residence: str | None = None
+    student_cohort: str | None = None
     avatar_url: str | None = None
     is_active: bool
     account_type: AccountType
     email_verified: bool
     approved_at: datetime | None = None
+    current_latitude: float | None = None
+    current_longitude: float | None = None
+    location_accuracy: float | None = None
+    location_updated_at: datetime | None = None
     created_at: datetime
 
 
@@ -80,6 +87,9 @@ class RegistrationResult(BaseModel):
 class ProfileUpdate(BaseModel):
     full_name: str | None = Field(None, min_length=2, max_length=150)
     phone: str | None = Field(None, max_length=30)
+    date_of_birth: date | None = None
+    temporary_residence: str | None = Field(None, max_length=255)
+    student_cohort: str | None = Field(None, max_length=30)
 
 
 class PasswordChange(BaseModel):
@@ -93,15 +103,27 @@ class UserCreate(BaseModel):
     role: Role
     password: str = Field(min_length=12, max_length=128)
     phone: str | None = Field(None, max_length=30)
+    date_of_birth: date | None = None
+    temporary_residence: str | None = Field(None, max_length=255)
+    student_cohort: str | None = Field(None, max_length=30)
     account_type: AccountType | None = None
 
 
 class UserUpdate(BaseModel):
     full_name: str | None = Field(None, min_length=2, max_length=150)
     phone: str | None = Field(None, max_length=30)
+    date_of_birth: date | None = None
+    temporary_residence: str | None = Field(None, max_length=255)
+    student_cohort: str | None = Field(None, max_length=30)
     role: Role | None = None
     is_active: bool | None = None
     account_type: AccountType | None = None
+
+
+class DeviceLocationUpdate(BaseModel):
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    accuracy: float | None = Field(None, ge=0, le=10000)
 
 
 class LocationCreate(BaseModel):
@@ -163,6 +185,7 @@ class IncidentCreate(BaseModel):
     category_id: uuid.UUID
     priority: IncidentPriority = IncidentPriority.MEDIUM
     location_id: uuid.UUID | None = None
+    location_note: str | None = Field(None, min_length=2, max_length=500)
     latitude: float | None = Field(None, ge=-90, le=90)
     longitude: float | None = Field(None, ge=-180, le=180)
     idempotency_key: str | None = Field(None, min_length=8, max_length=100)
@@ -173,8 +196,12 @@ class IncidentCreate(BaseModel):
         has_longitude = self.longitude is not None
         if has_latitude != has_longitude:
             raise ValueError("Cần cung cấp đồng thời vĩ độ và kinh độ")
-        if self.location_id is None and not has_latitude:
-            raise ValueError("Cần chọn địa điểm hoặc cung cấp đủ tọa độ")
+        if (
+            self.location_id is None
+            and not has_latitude
+            and not (self.location_note and self.location_note.strip())
+        ):
+            raise ValueError("Cần chọn phòng/khu vực, ghi vị trí chi tiết hoặc cung cấp đủ tọa độ")
         return self
 
 
@@ -208,6 +235,7 @@ class IncidentOut(BaseModel):
     priority: IncidentPriority
     reporter: UserBrief
     location: LocationOut | None
+    location_note: str | None
     latitude: float | None
     longitude: float | None
     assigned_staff: UserBrief | None

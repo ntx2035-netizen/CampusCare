@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../src/AuthContext';
 import { watchConnectivity } from '../src/queueRuntime';
 import { startRealtime, stopRealtime } from '../src/realtime';
+import { colors } from '../src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -14,7 +15,7 @@ function Navigator() {
   useEffect(() => watchConnectivity(), []);
   useEffect(() => { if (user) void startRealtime(); else stopRealtime(); return stopRealtime; }, [user]);
   if (!ready) return null;
-  return <><StatusBar style="light" /><Stack screenOptions={{ headerTintColor: '#22D3EE', headerStyle: { backgroundColor: '#070B14' }, headerTitleStyle: { fontWeight: '800', color: '#F8FAFC' }, headerShadowVisible: false, contentStyle: { backgroundColor: '#070B14' } }}>
+  return <><StatusBar style="light" /><Stack screenOptions={{ headerTintColor: colors.primary, headerStyle: { backgroundColor: colors.bg }, headerTitleStyle: { fontWeight: '800', color: colors.ink }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.bg } }}>
     <Stack.Screen name="index" options={{ headerShown: false }} />
     <Stack.Screen name="login" options={{ headerShown: false }} />
     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

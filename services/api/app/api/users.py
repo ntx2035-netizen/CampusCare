@@ -1,16 +1,18 @@
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
-from app.dependencies import require_roles
+from app.dependencies import client_ip, get_current_user, require_roles
 from app.enums import AccountType, Role
+from app.geo import is_in_campus_scope
 from app.models import User
-from app.schemas import UserCreate, UserOut, UserUpdate
+from app.realtime import manager
+from app.schemas import DeviceLocationUpdate, UserCreate, UserOut, UserUpdate
 from app.security import hash_password
 from app.services import audit
 
@@ -67,6 +69,59 @@ def list_users(
     return list(db.scalars(query.limit(200)))
 
 
+@router.get("/locations", response_model=list[UserOut])
+def list_device_locations(
+    actor: User = Depends(require_roles(Role.ADMIN, Role.DISPATCHER)),
+    db: Session = Depends(get_db),
+):
+    """Vị trí gần nhất chỉ dành cho bộ phận điều phối và quản trị."""
+    query = (
+        select(User)
+        .where(
+            User.is_active.is_(True),
+            User.current_latitude.is_not(None),
+            User.current_longitude.is_not(None),
+        )
+        .order_by(User.location_updated_at.desc())
+    )
+    return list(db.scalars(query.limit(200)))
+
+
+@router.patch("/me/location", response_model=UserOut)
+async def update_device_location(
+    payload: DeviceLocationUpdate,
+    request: Request,
+    actor: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not is_in_campus_scope(payload.latitude, payload.longitude):
+        raise HTTPException(
+            status_code=422,
+            detail="Vị trí thiết bị nằm ngoài phạm vi phục vụ quanh ICTU",
+        )
+    actor.current_latitude = payload.latitude
+    actor.current_longitude = payload.longitude
+    actor.location_accuracy = payload.accuracy
+    actor.location_updated_at = datetime.now(UTC)
+    # Không ghi tọa độ chính xác vào audit log để giảm rò rỉ dữ liệu vị trí.
+    audit(
+        db,
+        actor,
+        "USER_LOCATION_UPDATE",
+        "user",
+        actor.id,
+        client_ip(request),
+        details={"role": actor.role.value, "accuracy": payload.accuracy},
+    )
+    db.commit()
+    db.refresh(actor)
+    await manager.broadcast_roles(
+        {Role.ADMIN, Role.DISPATCHER},
+        {"event": "user.location.updated", "user_id": str(actor.id)},
+    )
+    return actor
+
+
 @router.post("", response_model=UserOut, status_code=201)
 def create_user(
     payload: UserCreate,
@@ -88,6 +143,9 @@ def create_user(
         approved_at=datetime.now(UTC) if payload.role in {Role.DISPATCHER, Role.STAFF} else None,
         password_hash=hash_password(payload.password),
         phone=payload.phone,
+        date_of_birth=payload.date_of_birth,
+        temporary_residence=payload.temporary_residence,
+        student_cohort=payload.student_cohort,
     )
     db.add(user)
     db.flush()

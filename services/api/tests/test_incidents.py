@@ -70,6 +70,17 @@ def test_create_rejects_partial_device_coordinates(client: TestClient, db: Sessi
     assert response.status_code == 422
 
 
+def test_create_accepts_free_form_location_note(client: TestClient, db: Session, tokens: dict):
+    data = payload(db, "free-form-location-key")
+    data["location_id"] = None
+    data["latitude"] = None
+    data["longitude"] = None
+    data["location_note"] = "Sân bóng phía sau tòa C"
+    response = client.post("/api/incidents", json=data, headers=auth(tokens["student"]))
+    assert response.status_code == 201, response.text
+    assert response.json()["location_note"] == "Sân bóng phía sau tòa C"
+
+
 def test_create_rejects_location_outside_ictu(client: TestClient, db: Session, tokens: dict):
     data = payload(db, "outside-campus-key")
     data["latitude"] = 10.7628

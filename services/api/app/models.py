@@ -1,9 +1,10 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     Enum,
     Float,
@@ -56,9 +57,16 @@ class User(TimestampMixin, Base):
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     phone: Mapped[str | None] = mapped_column(String(30))
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    temporary_residence: Mapped[str | None] = mapped_column(String(255))
+    student_cohort: Mapped[str | None] = mapped_column(String(30))
     avatar_url: Mapped[str | None] = mapped_column(String(500))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    current_latitude: Mapped[float | None] = mapped_column(Float)
+    current_longitude: Mapped[float | None] = mapped_column(Float)
+    location_accuracy: Mapped[float | None] = mapped_column(Float)
+    location_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class RegistrationOtp(Base):
@@ -131,6 +139,8 @@ class Incident(TimestampMixin, Base):
     priority: Mapped[IncidentPriority] = enum_column(IncidentPriority, index=True)
     reporter_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
     location_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("locations.id"), index=True)
+    # Ghi chú vị trí tự do dùng cho sân bóng, hành lang, nhà xe... nơi không có phòng.
+    location_note: Mapped[str | None] = mapped_column(String(500))
     latitude: Mapped[float | None] = mapped_column(Float)
     longitude: Mapped[float | None] = mapped_column(Float)
     assigned_staff_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), index=True)

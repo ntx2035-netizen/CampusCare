@@ -11,7 +11,7 @@ const nav: { to: string; label: string; icon: typeof LayoutDashboard; roles?: Ro
   { to: '/', label: 'Tổng quan', icon: LayoutDashboard },
   { to: '/report', label: 'Báo sự cố', icon: PlusCircle, roles: ['STUDENT'] },
   { to: '/incidents', label: 'Sự cố', icon: ClipboardList },
-  { to: '/map', label: 'Bản đồ sự cố', icon: Map },
+  { to: '/map', label: 'Bản đồ điều phối', icon: Map },
   { to: '/users', label: 'Người dùng', icon: Users, roles: ['ADMIN'] },
   { to: '/locations', label: 'Địa điểm', icon: Building2, roles: ['ADMIN'] },
   { to: '/categories', label: 'Loại sự cố', icon: Tags, roles: ['ADMIN'] },
@@ -39,6 +39,7 @@ export default function Layout() {
       socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.event?.startsWith('incident.')) queryClient.invalidateQueries({ queryKey: ['incidents'] });
+        if (message.event === 'user.location.updated') queryClient.invalidateQueries({ queryKey: ['user-locations'] });
         if (message.event === 'notification.created') queryClient.invalidateQueries({ queryKey: ['notifications'] });
       };
       socket.onclose = () => { retry = window.setTimeout(connect, 3000); };

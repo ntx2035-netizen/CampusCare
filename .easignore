@@ -1,0 +1,38 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated web output
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+**/coverage/
+
+# Local Expo and package caches
+.expo/
+.expo-home/
+.npm-cache/
+apps/mobile/web-build/
+
+# Python virtual environments and caches are not needed by the mobile build
+.venv
+**/.venv
+.pytest_cache
+**/.pytest_cache
+.ruff_cache
+**/.ruff_cache
+__pycache__
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Runtime and editor artifacts
+*.log
+*.tsbuildinfo
+.DS_Store
+services/api/uploads/

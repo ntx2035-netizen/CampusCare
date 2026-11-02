@@ -4,7 +4,7 @@ const values = new Map<string, string>();
 vi.mock('@react-native-async-storage/async-storage', () => ({ default: { getItem: vi.fn(async (key: string) => values.get(key) || null), setItem: vi.fn(async (key: string, value: string) => values.set(key, value)), removeItem: vi.fn(async (key: string) => values.delete(key)) } }));
 vi.mock('react-native', () => ({ Platform: { OS: 'web' } }));
 
-import { api, saveSession } from '../api';
+import { api, normalizeApiUrl, saveSession, setApiUrl } from '../api';
 
 describe('Lớp API mobile', () => {
   afterEach(() => { values.clear(); vi.restoreAllMocks(); });
@@ -21,5 +21,12 @@ describe('Lớp API mobile', () => {
   it('dịch lỗi validation thành thông báo cụ thể', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ detail: [{ loc: ['body', 'password'], msg: 'String should have at least 12 characters', ctx: { min_length: 12 } }] }), { status: 422, headers: { 'Content-Type': 'application/json' } }));
     await expect(api('/auth/register/request-otp', { method: 'POST', body: '{}' })).rejects.toThrow('Mật khẩu phải có tối thiểu 12 ký tự');
+  });
+  it('lưu IP máy chủ demo và tự thêm đường dẫn API', async () => {
+    expect(normalizeApiUrl('192.168.1.214')).toBe('http://192.168.1.214/api');
+    await setApiUrl('http://192.168.1.214/api');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    await api('/health');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://192.168.1.214/api/health');
   });
 });

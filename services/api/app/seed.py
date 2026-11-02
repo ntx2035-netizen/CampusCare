@@ -87,14 +87,51 @@ def seed() -> None:
         building_b = ensure_location(
             "Tòa nhà B", "B", LocationKind.BUILDING, main, 21.58710, 105.80498
         )
+        building_c = ensure_location(
+            "Tòa nhà C", "C", LocationKind.BUILDING, main, 21.58595, 105.80690
+        )
+        dorm_a = ensure_location(
+            "Ký túc xá A", "KTX-A", LocationKind.BUILDING, main, 21.58920, 105.80490
+        )
+        dorm_b = ensure_location(
+            "Ký túc xá B", "KTX-B", LocationKind.BUILDING, main, 21.59010, 105.80390
+        )
         floor_a1 = ensure_location("Tầng 1 - Tòa A", "A-1", LocationKind.FLOOR, building_a)
         floor_a2 = ensure_location("Tầng 2 - Tòa A", "A-2", LocationKind.FLOOR, building_a)
         floor_b1 = ensure_location("Tầng 1 - Tòa B", "B-1", LocationKind.FLOOR, building_b)
+        floor_c1 = ensure_location("Tầng 1 - Tòa C", "C-1", LocationKind.FLOOR, building_c)
+        floor_c2 = ensure_location("Tầng 2 - Tòa C", "C-2", LocationKind.FLOOR, building_c)
+        floor_c3 = ensure_location("Tầng 3 - Tòa C", "C-3", LocationKind.FLOOR, building_c)
+        floor_ka1 = ensure_location("Tầng 1 - Ký túc xá A", "KTX-A-1", LocationKind.FLOOR, dorm_a)
+        floor_ka2 = ensure_location("Tầng 2 - Ký túc xá A", "KTX-A-2", LocationKind.FLOOR, dorm_a)
+        floor_kb1 = ensure_location("Tầng 1 - Ký túc xá B", "KTX-B-1", LocationKind.FLOOR, dorm_b)
+        floor_kb2 = ensure_location("Tầng 2 - Ký túc xá B", "KTX-B-2", LocationKind.FLOOR, dorm_b)
         rooms = [
             ensure_location("Phòng A101", "A101", LocationKind.ROOM, floor_a1, 21.58662, 105.80570),
             ensure_location("Phòng A202", "A202", LocationKind.ROOM, floor_a2, 21.58672, 105.80578),
             ensure_location("Phòng B105", "B105", LocationKind.ROOM, floor_b1, 21.58710, 105.80498),
+            ensure_location("Phòng C101", "C101", LocationKind.ROOM, floor_c1, 21.58595, 105.80690),
+            ensure_location("Phòng C102", "C102", LocationKind.ROOM, floor_c1),
+            ensure_location("Phòng C201", "C201", LocationKind.ROOM, floor_c2),
+            ensure_location("Phòng C202", "C202", LocationKind.ROOM, floor_c2),
+            ensure_location("Phòng C301", "C301", LocationKind.ROOM, floor_c3),
+            ensure_location("Phòng C302", "C302", LocationKind.ROOM, floor_c3),
+            ensure_location(
+                "Phòng KTX-A101", "KTXA101", LocationKind.ROOM, floor_ka1, 21.58920, 105.80490
+            ),
+            ensure_location("Phòng KTX-A102", "KTXA102", LocationKind.ROOM, floor_ka1),
+            ensure_location("Phòng KTX-A201", "KTXA201", LocationKind.ROOM, floor_ka2),
+            ensure_location("Phòng KTX-A202", "KTXA202", LocationKind.ROOM, floor_ka2),
+            ensure_location(
+                "Phòng KTX-B101", "KTXB101", LocationKind.ROOM, floor_kb1, 21.59010, 105.80390
+            ),
+            ensure_location("Phòng KTX-B102", "KTXB102", LocationKind.ROOM, floor_kb1),
+            ensure_location("Phòng KTX-B201", "KTXB201", LocationKind.ROOM, floor_kb2),
+            ensure_location("Phòng KTX-B202", "KTXB202", LocationKind.ROOM, floor_kb2),
         ]
+        ensure_location("Sân bóng", "SAN-BONG", LocationKind.AREA, lat=21.58780, lng=105.80370)
+        ensure_location("Cổng chính", "CONG-CHINH", LocationKind.AREA, lat=21.58590, lng=105.80740)
+        ensure_location("Nhà xe", "NHA-XE", LocationKind.AREA, lat=21.58690, lng=105.80680)
 
         # Không tạo tài khoản hay sự cố giả. Dữ liệu mới phải đến từ người dùng
         # đã xác minh OTP; chỉ ADMIN là tài khoản bootstrap cố định.

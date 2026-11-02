@@ -17,3 +17,4 @@ apps/admin-web/vite.config.js
 apps/admin-web/vite.config.d.ts
 .DS_Store
 services/api/uploads/
+*.bak

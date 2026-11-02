@@ -20,13 +20,14 @@ export async function enqueue(storage: QueueStorage, payload: ReportPayload, ima
   return item;
 }
 
-export async function syncQueue(storage: QueueStorage, sender: (item: QueueItem) => Promise<void>): Promise<{ synced: number; failed: number }> {
-  const queue = await readQueue(storage); let synced = 0; let failed = 0; const remaining: QueueItem[] = [];
+export interface SyncResult { synced: number; failed: number; lastError?: string; }
+
+export async function syncQueue(storage: QueueStorage, sender: (item: QueueItem) => Promise<void>): Promise<SyncResult> {
+  const queue = await readQueue(storage); let synced = 0; let failed = 0; let lastError: string | undefined; const remaining: QueueItem[] = [];
   for (const item of queue) {
     try { await sender({ ...item, status: 'SYNCING' }); synced += 1; }
-    catch (reason) { failed += 1; remaining.push({ ...item, status: 'ERROR', error: reason instanceof Error ? reason.message : 'Không thể đồng bộ' }); }
+    catch (reason) { failed += 1; lastError = reason instanceof Error ? reason.message : 'Không thể đồng bộ'; remaining.push({ ...item, status: 'ERROR', error: lastError }); }
   }
   await storage.setItem(QUEUE_KEY, JSON.stringify(remaining));
-  return { synced, failed };
+  return { synced, failed, ...(lastError ? { lastError } : {}) };
 }
-

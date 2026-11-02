@@ -15,8 +15,7 @@ describe('Hàng đợi offline', () => {
 
   it('xóa mục thành công và giữ mục lỗi để thử lại', async () => {
     const storage = memoryStorage(); await enqueue(storage, report, ['file://anh.jpg']); const result = await syncQueue(storage, async () => { throw new Error('Mất kết nối'); });
-    expect(result).toEqual({ synced: 0, failed: 1 }); expect((await readQueue(storage))[0]).toMatchObject({ status: 'ERROR', error: 'Mất kết nối' });
+    expect(result).toEqual({ synced: 0, failed: 1, lastError: 'Mất kết nối' }); expect((await readQueue(storage))[0]).toMatchObject({ status: 'ERROR', error: 'Mất kết nối' });
     const retried = await syncQueue(storage, async () => undefined); expect(retried.synced).toBe(1); expect(await readQueue(storage)).toHaveLength(0);
   });
 });
-

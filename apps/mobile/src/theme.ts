@@ -1,19 +1,75 @@
 import { StyleSheet } from 'react-native';
 
-export const colors = { ink: '#F8FAFC', muted: '#94A3B8', bg: '#070B14', card: '#111827', teal: '#22D3EE', tealDark: '#0891B2', blue: '#8B5CF6', border: 'rgba(148, 163, 184, 0.16)', danger: '#EF4444', warning: '#F59E0B', success: '#22C55E' };
+// Token dùng chung cho toàn bộ mobile app. Giữ giao diện tối dịu, dễ đọc và
+// tránh dùng màu neon/gradient làm màu chủ đạo.
+export const colors = {
+  ink: '#F7F9FC',
+  muted: '#B4BFCE',
+  subtle: '#7F8CA0',
+  bg: '#101725',
+  card: '#182233',
+  surface: '#182233',
+  surfaceRaised: '#202C3E',
+  input: '#121C2A',
+  border: '#2B3A4F',
+  primary: '#75A7F8',
+  primaryStrong: '#4E7FD0',
+  primarySoft: 'rgba(117, 167, 248, 0.15)',
+  success: '#55C486',
+  successSoft: 'rgba(85, 196, 134, 0.14)',
+  warning: '#D8A84E',
+  warningSoft: 'rgba(216, 168, 78, 0.15)',
+  danger: '#E4777D',
+  dangerSoft: 'rgba(228, 119, 125, 0.14)',
+  // Alias tương thích với các màn hình hiện có.
+  teal: '#75A7F8',
+  tealDark: '#4E7FD0',
+  blue: '#A9C7FF',
+};
 
 export const common = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg }, content: { padding: 18, gap: 14 },
-  card: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16, gap: 10 },
-  h1: { fontSize: 27, lineHeight: 33, fontWeight: '800', color: colors.ink }, h2: { fontSize: 17, fontWeight: '800', color: colors.ink },
-  body: { color: colors.ink, lineHeight: 21 }, muted: { color: colors.muted, lineHeight: 20 },
-  label: { color: '#94A3B8', fontWeight: '700', fontSize: 12, marginBottom: 6 },
-  input: { backgroundColor: '#0c1220', borderWidth: 1, borderColor: 'rgba(148, 163, 184, 0.2)', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 12, color: colors.ink },
-  button: { minHeight: 47, borderRadius: 11, backgroundColor: colors.teal, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-  buttonText: { color: '#070B14', fontWeight: '800' }, secondaryButton: { minHeight: 45, borderRadius: 11, borderWidth: 1, borderColor: colors.border, backgroundColor: 'rgba(255, 255, 255, 0.05)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 15 },
-  secondaryText: { color: colors.ink, fontWeight: '700' }, row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  content: {
+    width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20,
+    paddingTop: 20, paddingBottom: 36, gap: 16,
+  },
+  card: {
+    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border,
+    borderRadius: 14, padding: 16, gap: 12,
+  },
+  h1: { fontSize: 27, lineHeight: 33, fontWeight: '800', letterSpacing: -0.45, color: colors.ink },
+  h2: { fontSize: 17, lineHeight: 23, fontWeight: '700', letterSpacing: -0.15, color: colors.ink },
+  body: { color: colors.ink, lineHeight: 21, fontSize: 14 },
+  muted: { color: colors.muted, lineHeight: 20, fontSize: 13 },
+  label: { color: colors.muted, fontWeight: '700', fontSize: 13, marginBottom: 6 },
+  input: {
+    minHeight: 48, backgroundColor: colors.input, borderWidth: 1, borderColor: colors.border,
+    borderRadius: 10, paddingHorizontal: 13, paddingVertical: 11, color: colors.ink, fontSize: 15,
+  },
+  button: {
+    minHeight: 48, borderRadius: 10, backgroundColor: colors.primary,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16,
+  },
+  buttonText: { color: '#10203A', fontWeight: '800', fontSize: 15 },
+  secondaryButton: {
+    minHeight: 46, borderRadius: 10, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14,
+  },
+  secondaryText: { color: colors.ink, fontWeight: '700', fontSize: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  error: { color: '#F87171', backgroundColor: 'rgba(239, 68, 68, 0.12)', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.25)' }, success: { color: '#4ADE80', backgroundColor: 'rgba(34, 197, 94, 0.12)', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(34, 197, 94, 0.25)' },
-  empty: { padding: 35, alignItems: 'center', gap: 8 }, badge: { alignSelf: 'flex-start', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 20, backgroundColor: 'rgba(34, 211, 238, 0.12)', color: '#38BDF8', overflow: 'hidden', fontSize: 11, fontWeight: '800', borderWidth: 1, borderColor: 'rgba(34, 211, 238, 0.25)' },
-});
-
+  error: {
+    color: '#FFB0B4', backgroundColor: colors.dangerSoft, padding: 13, borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(228, 119, 125, 0.35)', lineHeight: 20,
+  },
+  success: {
+    color: '#8CE2AF', backgroundColor: colors.successSoft, padding: 13, borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(85, 196, 134, 0.34)', lineHeight: 20,
+  },
+  empty: { paddingVertical: 44, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  badge: {
+    alignSelf: 'flex-start', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8,
+    backgroundColor: colors.primarySoft, color: '#B8D2FF', overflow: 'hidden', fontSize: 11,
+    fontWeight: '800', borderWidth: 1, borderColor: 'rgba(117, 167, 248, 0.28)',
+  },
+}) as Record<string, any>;

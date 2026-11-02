@@ -5,7 +5,8 @@ export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
 
 export interface User {
   id: string; email: string; full_name: string; role: Role; account_type: AccountType;
-  email_verified: boolean; approved_at?: string; phone?: string; avatar_url?: string; is_active: boolean; created_at: string;
+  email_verified: boolean; approved_at?: string; phone?: string; date_of_birth?: string; temporary_residence?: string; student_cohort?: string; avatar_url?: string; is_active: boolean; created_at: string;
+  current_latitude?: number; current_longitude?: number; location_accuracy?: number; location_updated_at?: string;
 }
 export interface Location {
   id: string; name: string; code: string; kind: 'AREA' | 'BUILDING' | 'FLOOR' | 'ROOM';
@@ -16,7 +17,7 @@ export interface Timeline { id: string; actor: User; from_status?: IncidentStatu
 export interface IncidentImage { id: string; kind: 'REPORT' | 'BEFORE' | 'AFTER'; content_type: string; size: number; created_at: string; url?: string; }
 export interface Incident {
   id: string; code: string; title: string; description: string; category: Category; priority: Priority;
-  reporter: User; location?: Location; latitude?: number; longitude?: number; assigned_staff?: User;
+  reporter: User; location?: Location; location_note?: string; latitude?: number; longitude?: number; assigned_staff?: User;
   status: IncidentStatus; resolution?: string; rejection_reason?: string; rating?: number; feedback?: string;
   due_at?: string; created_at: string; updated_at: string; histories: Timeline[]; images: IncidentImage[];
 }

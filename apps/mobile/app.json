@@ -3,6 +3,7 @@
     "name": "CampusCare",
     "slug": "campus-care",
     "version": "1.0.0",
+    "icon": "./assets/campuscare-ictu-logo.png",
     "orientation": "portrait",
     "scheme": "campuscare",
     "userInterfaceStyle": "light",
@@ -53,7 +54,16 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#087f8c",
+          "image": "./assets/campuscare-ictu-logo.png",
           "imageWidth": 160
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],

@@ -8,6 +8,19 @@ def test_login_and_profile(client: TestClient):
     response = client.get("/api/auth/me", headers=auth(token))
     assert response.status_code == 200
     assert response.json()["role"] == "STUDENT"
+    updated = client.patch(
+        "/api/auth/me",
+        json={
+            "phone": "0987654321",
+            "date_of_birth": "2004-05-20",
+            "temporary_residence": "Phường Tân Thịnh, Thái Nguyên",
+            "student_cohort": "K22",
+        },
+        headers=auth(token),
+    )
+    assert updated.status_code == 200
+    assert updated.json()["date_of_birth"] == "2004-05-20"
+    assert updated.json()["student_cohort"] == "K22"
 
 
 def test_login_rejects_bad_password(client: TestClient):

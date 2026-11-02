@@ -14,7 +14,8 @@ export async function persistImages(uris: string[], key: string): Promise<string
   await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
   const saved: string[] = [];
   for (let index = 0; index < uris.length; index += 1) {
-    const extension = uris[index].split('.').pop()?.split('?')[0] || 'jpg';
+    const candidate = uris[index].split(/[?#]/)[0].match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
+    const extension = candidate && ['jpg', 'jpeg', 'png', 'webp'].includes(candidate) ? candidate : 'jpg';
     const target = `${directory}${key}-${index}.${extension}`;
     await FileSystem.copyAsync({ from: uris[index], to: target }); saved.push(target);
   }
@@ -34,9 +35,10 @@ export async function runSync() {
 
 export function watchConnectivity(onChange?: () => void) {
   return NetInfo.addEventListener(async (state) => {
-    if (state.isConnected && (await readQueue(AsyncStorage)).length) { await runSync(); onChange?.(); }
+    if (state.isConnected && state.isInternetReachable !== false && (await readQueue(AsyncStorage)).length) {
+      try { await runSync(); } catch { /* Giữ nguyên hàng đợi để người dùng thử lại. */ } finally { onChange?.(); }
+    }
   });
 }
 
 export const offlineStorage = AsyncStorage;
-

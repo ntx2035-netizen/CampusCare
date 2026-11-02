@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { AlertOctagon, CheckCircle2, Clock3, ClipboardList } from 'lucide-react';
+import { AlertOctagon, CheckCircle2, Clock3, ClipboardList, LifeBuoy, MapPin, Send } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -34,6 +34,25 @@ export default function DashboardPage() {
   const emergency = data.filter((item) => item.priority === 'EMERGENCY' && !['CLOSED', 'REJECTED'].includes(item.status)).length;
   const resolved = data.filter((item) => ['RESOLVED', 'CLOSED'].includes(item.status)).length;
   const chartData = Object.entries(summary?.by_status || {}).map(([key, value]) => ({ name: STATUS_LABEL[key as keyof typeof STATUS_LABEL] || key, value }));
+  if (user?.role === 'STUDENT') {
+    const name = user.full_name.trim().split(/\s+/).pop() || 'bạn';
+    return <>
+      <PageHeader title={`Xin chào, ${name}`} subtitle="Bạn cần CampusCare hỗ trợ điều gì hôm nay?" />
+      <section className="student-welcome">
+        <div><span className="eyebrow">HỖ TRỢ SINH VIÊN</span><h2>Gửi yêu cầu, theo dõi tiến độ và nhận phản hồi tại một nơi.</h2><p>Thông tin của bạn sẽ được chuyển đến đúng bộ phận để xử lý nhanh hơn.</p></div>
+        <Link to="/report" className="primary"><Send size={17} /> Gửi yêu cầu hỗ trợ</Link>
+      </section>
+      <section className="student-actions" aria-label="Các thao tác nhanh">
+        <Link to="/report" className="student-action"><Send size={20} /><strong>Gửi yêu cầu</strong><span>Báo sự cố hoặc cần hỗ trợ</span></Link>
+        <Link to="/incidents" className="student-action"><ClipboardList size={20} /><strong>Theo dõi yêu cầu</strong><span>Xem cập nhật mới nhất</span></Link>
+        <Link to="/map" className="student-action"><MapPin size={20} /><strong>Xem địa điểm</strong><span>Kiểm tra khu vực trong trường</span></Link>
+        <Link to="/notifications" className="student-action"><LifeBuoy size={20} /><strong>Thông báo</strong><span>Nhận phản hồi từ CampusCare</span></Link>
+      </section>
+      <section className="card student-recent"><div className="card-title"><div><h2>Yêu cầu gần đây</h2><p>Theo dõi trạng thái của những yêu cầu bạn đã gửi.</p></div><Link to="/incidents">Xem tất cả</Link></div>
+        {!data.length ? <div className="student-empty"><ClipboardList size={28} /><strong>Bạn chưa có yêu cầu hỗ trợ nào.</strong><span>Nếu gặp vấn đề, CampusCare luôn sẵn sàng hỗ trợ bạn.</span><Link to="/report">Gửi yêu cầu đầu tiên</Link></div> : <div className="table-wrap"><table><thead><tr><th>Yêu cầu</th><th>Địa điểm</th><th>Trạng thái</th><th>Thời gian</th></tr></thead><tbody>{data.slice(0, 5).map((item) => <tr key={item.id}><td><Link to={`/incidents/${item.id}`}><strong>{item.title}</strong></Link><small>{item.code} · {item.category.name}</small></td><td>{item.location?.name || item.location_note || 'Chưa có địa điểm'}</td><td><StatusBadge status={STATUS_LABEL[item.status]} /></td><td>{new Date(item.created_at).toLocaleDateString('vi-VN')}</td></tr>)}</tbody></table></div>}
+      </section>
+    </>;
+  }
   return <>
     <PageHeader title={title} subtitle={subtitle} />
     <div className="metrics">
@@ -47,7 +66,7 @@ export default function DashboardPage() {
       <section className="card chart-card"><div className="card-title"><h2>Khối lượng nhân viên</h2></div>{summary?.staff_workload?.length ? <ResponsiveContainer width="100%" height={270}><BarChart data={summary.staff_workload} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" vertical={false} /><XAxis dataKey="name" stroke="#64748B" tick={{ fill: '#94A3B8', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(148, 163, 184, 0.15)' }} /><YAxis allowDecimals={false} stroke="#64748B" tick={{ fill: '#94A3B8', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(148, 163, 184, 0.15)' }} /><Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(34, 211, 238, 0.05)' }} /><Bar dataKey="count" name="Nhiệm vụ" fill="#22D3EE" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer> : <Empty label="Chưa có dữ liệu phân công" />}</section>
     </div>}
     <section className="card"><div className="card-title"><div><h2>Sự cố mới nhất</h2><p>Danh sách tự cập nhật khi có thay đổi</p></div><Link to="/incidents">Xem tất cả</Link></div>
-      {!data.length ? <Empty label="Chưa có sự cố nào" /> : <div className="table-wrap"><table><thead><tr><th>Mã</th><th>Sự cố</th><th>Địa điểm</th><th>Ưu tiên</th><th>Trạng thái</th><th>Thời gian</th></tr></thead><tbody>{data.slice(0, 7).map((item) => <tr key={item.id}><td><Link to={`/incidents/${item.id}`} className="code">{item.code}</Link></td><td><strong>{item.title}</strong><small>{item.category.name}</small></td><td>{item.location?.name || 'Theo tọa độ'}</td><td><span className={`priority priority-${item.priority.toLowerCase()}`}>{item.priority}</span></td><td><StatusBadge status={STATUS_LABEL[item.status]} /></td><td>{new Date(item.created_at).toLocaleString('vi-VN')}</td></tr>)}</tbody></table></div>}
+      {!data.length ? <Empty label="Chưa có sự cố nào" /> : <div className="table-wrap"><table><thead><tr><th>Mã</th><th>Sự cố</th><th>Địa điểm</th><th>Ưu tiên</th><th>Trạng thái</th><th>Thời gian</th></tr></thead><tbody>{data.slice(0, 7).map((item) => <tr key={item.id}><td><Link to={`/incidents/${item.id}`} className="code">{item.code}</Link></td><td><strong>{item.title}</strong><small>{item.category.name}</small></td><td>{item.location?.name || item.location_note || (item.latitude != null && item.longitude != null ? 'Theo tọa độ' : 'Chưa có địa điểm')}</td><td><span className={`priority priority-${item.priority.toLowerCase()}`}>{item.priority}</span></td><td><StatusBadge status={STATUS_LABEL[item.status]} /></td><td>{new Date(item.created_at).toLocaleString('vi-VN')}</td></tr>)}</tbody></table></div>}
     </section>
   </>;
 }
